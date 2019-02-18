@@ -7,7 +7,6 @@ const Layout = props => {
   return (
     <div>
       <Header />
-      hello {props.children}
       <Home />
       <Footer />
     </div>
