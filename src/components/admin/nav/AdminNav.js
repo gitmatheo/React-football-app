@@ -18,7 +18,7 @@ const AdminNav = () => {
       linkTo: "/admin_players"
     },
     {
-      title: "Players",
+      title: "Add Players",
       linkTo: "/admin_players/add_player"
     }
   ];
@@ -28,7 +28,7 @@ const AdminNav = () => {
     fontWeight: "300",
     borderBottom: "1px solid #353535"
   };
-  const renderItems = () => {
+  const renderItems = () =>
     links.map(link => (
       <Link to={link.linkTo} key={link.title}>
         <ListItem button style={style}>
@@ -36,7 +36,6 @@ const AdminNav = () => {
         </ListItem>
       </Link>
     ));
-  };
   const logoutHandler = () => {
     firebase
       .auth()
@@ -53,7 +52,9 @@ const AdminNav = () => {
   return (
     <div>
       {renderItems()}
-      <ListItem button style={style} onClick={() => logoutHandler()} />
+      <ListItem button style={style} onClick={() => logoutHandler()}>
+        Log Out
+      </ListItem>
     </div>
   );
 };
