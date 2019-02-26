@@ -2,12 +2,7 @@ import React, { Component } from "react";
 import AdminLayout from "../../../hoc/AdminLayout";
 import FormField from "../../ui/formFields";
 import { validate } from "../../ui/misc";
-import {
-  firebasetTeams,
-  firebaseDB,
-  firebaseMatches,
-  firebaseTeams
-} from "../../../firebase";
+import { firebaseDB, firebaseMatches, firebaseTeams } from "../../../firebase";
 import { firebaseLooper } from "../../ui/misc";
 
 class AddEditMatch extends Component {
@@ -170,8 +165,8 @@ class AddEditMatch extends Component {
   };
 
   updateForm(element) {
-    const newFormdata = { ...this.state.formdata };
-    const newElement = { ...newFormdata[element.id] };
+    const newformData = { ...this.state.formData };
+    const newElement = { ...newformData[element.id] };
 
     newElement.value = element.event.target.value;
 
@@ -179,33 +174,33 @@ class AddEditMatch extends Component {
     newElement.valid = validData[0];
     newElement.validationMessage = validData[1];
 
-    newFormdata[element.id] = newElement;
+    newformData[element.id] = newElement;
 
     this.setState({
       formError: false,
-      formdata: newFormdata
+      formData: newformData
     });
   }
 
   updateFields(match, teamOptions, teams, type, matchId) {
-    const newFormdata = {
-      ...this.state.formdata
+    const newformData = {
+      ...this.state.formData
     };
 
-    for (let key in newFormdata) {
+    for (let key in newformData) {
       if (match) {
-        newFormdata[key].value = match[key];
-        newFormdata[key].valid = true;
+        newformData[key].value = match[key];
+        newformData[key].valid = true;
       }
       if (key === "local" || key === "away") {
-        newFormdata[key].config.options = teamOptions;
+        newformData[key].config.options = teamOptions;
       }
     }
 
     this.setState({
       matchId,
       formType: type,
-      formdata: newFormdata,
+      formData: newformData,
       teams
     });
   }
@@ -239,6 +234,67 @@ class AddEditMatch extends Component {
         });
     }
   }
+
+  successForm(message) {
+    this.setState({
+      formSuccess: message
+    });
+
+    setTimeout(() => {
+      this.setState({
+        formSuccess: ""
+      });
+    }, 2000);
+  }
+
+  submitForm(event) {
+    event.preventDefault();
+
+    let dataToSubmit = {};
+    let formIsValid = true;
+
+    for (let key in this.state.formData) {
+      dataToSubmit[key] = this.state.formData[key].value;
+      formIsValid = this.state.formData[key].valid && formIsValid;
+    }
+
+    this.state.teams.forEach(team => {
+      if (team.shortName === dataToSubmit.local) {
+        dataToSubmit["localThmb"] = team.thmb;
+      }
+      if (team.shortName === dataToSubmit.away) {
+        dataToSubmit["awayThmb"] = team.thmb;
+      }
+    });
+
+    if (formIsValid) {
+      if (this.state.formType === "Edit Match") {
+        firebaseDB
+          .ref(`matches/${this.state.matchId}`)
+          .update(dataToSubmit)
+          .then(() => {
+            this.successForm("Updated correctly");
+          })
+          .catch(e => {
+            this.setState({ formError: true });
+          });
+      } else {
+        firebaseMatches
+          .push(dataToSubmit)
+          .then(() => {
+            this.props.history.push("/admin_matches");
+          })
+          .catch(e => {
+            this.setState({ formError: true });
+          });
+      }
+    } else {
+      this.setState({
+        formError: true
+      });
+    }
+  }
+
   render() {
     return (
       <AdminLayout>
