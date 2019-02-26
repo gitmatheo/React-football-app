@@ -28,7 +28,7 @@ class AddEditPlayers extends Component {
         validationMessage: "",
         showLabel: true
       },
-      lastName: {
+      lastname: {
         element: "input",
         value: "",
         config: {
@@ -85,27 +85,73 @@ class AddEditPlayers extends Component {
         validation: {
           required: true
         },
-        valid: true
+        valid: false
       }
     }
   };
 
+  updateFields = (player, playerId, formType, defaultImg) => {
+    const newformData = { ...this.state.formData };
+
+    for (let key in newformData) {
+      newformData[key].value = player[key];
+      newformData[key].valid = true;
+    }
+
+    this.setState({
+      playerId,
+      defaultImg,
+      formType,
+      formData: newformData
+    });
+  };
+
   componentDidMount() {
     const playerId = this.props.match.params.id;
+
     if (!playerId) {
       this.setState({
-        formType: "Add Player"
+        formType: "Add player"
       });
     } else {
-      ////
+      firebaseDB
+        .ref(`players/${playerId}`)
+        .once("value")
+        .then(snapshot => {
+          const playerData = snapshot.val();
+
+          firebase
+            .storage()
+            .ref("players")
+            .child(playerData.image)
+            .getDownloadURL()
+            .then(url => {
+              this.updateFields(playerData, playerId, "Edit player", url);
+            })
+            .catch(e => {
+              this.updateFields(
+                {
+                  ...playerData,
+                  image: ""
+                },
+                playerId,
+                "Edit player",
+                ""
+              );
+            });
+        });
     }
   }
 
-  updateForm(element) {
+  updateForm(element, content = "") {
     const newformData = { ...this.state.formData };
     const newElement = { ...newformData[element.id] };
 
-    newElement.value = element.event.target.value;
+    if (content === "") {
+      newElement.value = element.event.target.value;
+    } else {
+      newElement.value = content;
+    }
 
     let validData = validate(newElement);
     newElement.valid = validData[0];
@@ -118,6 +164,18 @@ class AddEditPlayers extends Component {
       formData: newformData
     });
   }
+
+  successForm = message => {
+    this.setState({
+      formSuccess: message
+    });
+    setTimeout(() => {
+      this.setState({
+        formSuccess: ""
+      });
+    }, 2000);
+  };
+
   submitForm(event) {
     event.preventDefault();
 
@@ -130,7 +188,28 @@ class AddEditPlayers extends Component {
     }
 
     if (formIsValid) {
-      //submit form
+      if (this.state.formType === "Edit player") {
+        firebaseDB
+          .ref(`players/${this.state.playerId}`)
+          .update(dataToSubmit)
+          .then(() => {
+            this.successForm("Update correctly");
+          })
+          .catch(e => {
+            this.setState({ formError: true });
+          });
+      } else {
+        firebasePlayers
+          .push(dataToSubmit)
+          .then(() => {
+            this.props.history.push("/admin_players");
+          })
+          .catch(e => {
+            this.setState({
+              formError: true
+            });
+          });
+      }
     } else {
       this.setState({
         formError: true
@@ -138,8 +217,20 @@ class AddEditPlayers extends Component {
     }
   }
 
-  resetImage = () => {};
-  storeFileName = () => {};
+  resetImage = () => {
+    const newformData = { ...this.state.formData };
+    newformData["image"].value = "";
+    newformData["image"].valid = false;
+
+    this.setState({
+      defaultImg: "",
+      formData: newformData
+    });
+  };
+
+  storeFilename = filename => {
+    this.updateForm({ id: "image" }, filename);
+  };
   render() {
     return (
       <AdminLayout>
@@ -162,7 +253,7 @@ class AddEditPlayers extends Component {
               />
               <FormField
                 id={"lastname"}
-                formData={this.state.formData.lastName}
+                formData={this.state.formData.lastname}
                 change={element => this.updateForm(element)}
               />
               <FormField
