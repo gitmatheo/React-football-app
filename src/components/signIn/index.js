@@ -87,6 +87,7 @@ class SignIn extends Component {
         <div className="signin_wrapper" style={{ margin: "100px" }}>
           <form onSubmit={event => this.submitForm(event)}>
             <h2>Please Login</h2>
+            login: test@test.com password: test123
             <FormField
               id={"email"}
               formData={this.state.formData.email}
