@@ -10,7 +10,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import CircularProgress from "@material-ui/core/CircularProgress";
 
-import { firebaseMatches, firebase } from "../../../firebase";
+import { firebaseMatches } from "../../../firebase";
 import { firebaseLooper, reverseArray } from "../../ui/misc";
 
 class AdminMatches extends Component {
