@@ -14,6 +14,7 @@ import AdminPlayers from "./components/admin/players";
 import AddEditPlayers from "./components/admin/players/addEditPlayers";
 import TheTeam from "./components/theTeam";
 import TheMatches from "./components/theMatches";
+import NotFound from "./components/ui/notFound";
 
 const Routes = props => {
   return (
@@ -89,6 +90,7 @@ const Routes = props => {
           exact
           component={Home}
         />
+        <PublicRoute {...props} restricted={false} component={NotFound} />
       </Switch>
     </Layout>
   );
